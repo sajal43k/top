@@ -1,59 +1,59 @@
 package com.example.top.data.repository
 
-import android.net.Uri
 import com.example.top.data.model.UserProfile
-import com.example.top.firebase.service.FirebaseAuthService
-import com.example.top.firebase.service.FirebaseStorageService
-import com.example.top.firebase.service.FirestoreService
 
+/**
+ * Firebase-ready authentication contract. Replace the in-memory implementation
+ * with Firebase Auth + Firestore calls when the Firebase project is connected.
+ */
 interface AuthRepository {
     suspend fun login(identifier: String, password: String): Result<UserProfile>
-    suspend fun createAccount(
-        profile: UserProfile,
-        email: String,
-        password: String,
-        profileImageUri: Uri? = null
-    ): Result<UserProfile>
-    suspend fun getLoggedInUser(): Result<UserProfile>
-    suspend fun sendPasswordReset(email: String): Result<Unit>
-    fun hasSession(): Boolean
-    fun logout()
+    suspend fun createAccount(profile: UserProfile, password: String): Result<UserProfile>
+    suspend fun recoverPassword(
+        identifier: String,
+        firstPetName: String,
+        hasNoPet: Boolean,
+        firstSchoolName: String,
+        firstFriendName: String
+    ): Result<Unit>
 }
 
-class FirebaseAuthRepository(
-    private val authService: FirebaseAuthService = FirebaseAuthService(),
-    private val firestoreService: FirestoreService = FirestoreService(),
-    private val storageService: FirebaseStorageService = FirebaseStorageService()
-) : AuthRepository {
+class InMemoryAuthRepository : AuthRepository {
+    private val demoUser = UserProfile(
+        name = "Demo Admin",
+        phoneNumber = "9999999999",
+        profession = "Teacher",
+        age = "28",
+        firstPetName = "Moti",
+        firstSchoolName = "Central School",
+        firstFriendName = "Aman"
+    )
 
-    override suspend fun login(identifier: String, password: String): Result<UserProfile> = runCatching {
-        val firebaseUser = authService.login(identifier.trim(), password)
-        firestoreService.getUser(firebaseUser.uid)
+    override suspend fun login(identifier: String, password: String): Result<UserProfile> {
+        return if (identifier.isNotBlank() && password.isNotBlank()) Result.success(demoUser)
+        else Result.failure(IllegalArgumentException("Enter name/phone and password."))
     }
 
-    override suspend fun createAccount(
-        profile: UserProfile,
-        email: String,
-        password: String,
-        profileImageUri: Uri?
-    ): Result<UserProfile> = runCatching {
-        val firebaseUser = authService.createUser(email.trim(), password)
-        val imageUrl = profileImageUri?.let { storageService.uploadProfileImage(firebaseUser.uid, it) }
-        val updatedProfile = profile.copy(profileImageUri = imageUrl)
-        firestoreService.saveUser(firebaseUser.uid, updatedProfile, email)
-        updatedProfile
+    override suspend fun createAccount(profile: UserProfile, password: String): Result<UserProfile> {
+        return when {
+            profile.name.isBlank() -> Result.failure(IllegalArgumentException("Name is required."))
+            profile.phoneNumber.length < 10 -> Result.failure(IllegalArgumentException("Enter a valid phone number."))
+            password.length < 6 -> Result.failure(IllegalArgumentException("Password must be at least 6 characters."))
+            else -> Result.success(profile)
+        }
     }
 
-    override suspend fun getLoggedInUser(): Result<UserProfile> = runCatching {
-        val user = authService.currentUser() ?: error("No active session")
-        firestoreService.getUser(user.uid)
+    override suspend fun recoverPassword(
+        identifier: String,
+        firstPetName: String,
+        hasNoPet: Boolean,
+        firstSchoolName: String,
+        firstFriendName: String
+    ): Result<Unit> {
+        return if (identifier.isNotBlank() && firstSchoolName.isNotBlank() && firstFriendName.isNotBlank()) {
+            Result.success(Unit)
+        } else {
+            Result.failure(IllegalArgumentException("Fill the recovery questions."))
+        }
     }
-
-    override suspend fun sendPasswordReset(email: String): Result<Unit> = runCatching {
-        authService.sendPasswordReset(email)
-    }
-
-    override fun hasSession(): Boolean = authService.currentUser() != null
-
-    override fun logout() = authService.logout()
 }

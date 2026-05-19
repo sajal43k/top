@@ -36,7 +36,7 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var email by remember { mutableStateOf("") }
+    var identifier by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState.message) {
@@ -53,10 +53,10 @@ fun LoginScreen(
         ) {
             ScreenTitle("Login", "Use your name or phone number and password to open your score groups.")
             AuthCard {
-                TopScoreTextField(email, { email = it }, "Email")
+                TopScoreTextField(identifier, { identifier = it }, "Name or phone number")
                 TopScoreTextField(password, { password = it }, "Password", visualTransformation = PasswordVisualTransformation())
                 PrimaryActionButton("Login", uiState.isLoading) {
-                    viewModel.login(email, password, onLoginSuccess)
+                    viewModel.login(identifier, password, onLoginSuccess)
                 }
                 SecondaryActionButton("Create account", onCreateAccount)
                 InlineLink("Forgot password?", onForgotPassword)

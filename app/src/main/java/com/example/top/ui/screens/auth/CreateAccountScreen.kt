@@ -41,7 +41,6 @@ fun CreateAccountScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var profession by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
@@ -67,7 +66,6 @@ fun CreateAccountScreen(
             ScreenTitle("Create account", "Add profile details now. Duplicate-name suggestions will come with Firebase search.")
             AuthCard {
                 TopScoreTextField(name, { name = it }, "Full name")
-                TopScoreTextField(email, { email = it }, "Email")
                 TopScoreTextField(phone, { phone = it }, "Phone number")
                 TopScoreTextField(profession, { profession = it }, "Profession (student, teacher, etc.)")
                 TopScoreTextField(age, { age = it }, "Age")
@@ -84,10 +82,8 @@ fun CreateAccountScreen(
                 PrimaryActionButton("Create account", uiState.isLoading) {
                     viewModel.createAccount(
                         profile = UserProfile(name, phone, profession, age, firstPetName = firstPet, hasNoPet = hasNoPet, firstSchoolName = firstSchool, firstFriendName = firstFriend),
-                        email = email,
                         password = password,
                         confirmPassword = confirmPassword,
-                        profileImageUri = null,
                         onSuccess = onAccountCreated
                     )
                 }

@@ -1,8 +1,6 @@
 package com.example.top.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,30 +10,20 @@ import com.example.top.ui.screens.auth.ForgotPasswordScreen
 import com.example.top.ui.screens.auth.LoginScreen
 import com.example.top.ui.screens.home.HomeScreen
 import com.example.top.ui.screens.splash.SplashScreen
-import com.example.top.ui.state.AuthState
 import com.example.top.ui.viewmodel.AuthViewModel
 
 @Composable
 fun TopScoreApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
-    val authState by authViewModel.uiState.collectAsState()
 
     NavHost(navController = navController, startDestination = AppRoute.Splash.route) {
         composable(AppRoute.Splash.route) {
-            SplashScreen(
-                authState = authState.authState,
-                onNavigateAuthenticated = {
-                    navController.navigate(AppRoute.Home.route) {
-                        popUpTo(AppRoute.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateUnauthenticated = {
-                    navController.navigate(AppRoute.Login.route) {
-                        popUpTo(AppRoute.Splash.route) { inclusive = true }
-                    }
+            SplashScreen(onContinue = {
+                navController.navigate(AppRoute.Login.route) {
+                    popUpTo(AppRoute.Splash.route) { inclusive = true }
                 }
-            )
+            })
         }
         composable(AppRoute.Login.route) {
             LoginScreen(
@@ -67,7 +55,7 @@ fun TopScoreApp() {
             )
         }
         composable(AppRoute.Home.route) {
-            HomeScreen(onCreateGroup = {}, authViewModel = authViewModel)
+            HomeScreen(onCreateGroup = { /* Next milestone: open group setup C1. */ })
         }
     }
 }

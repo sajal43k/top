@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.top.data.model.GroupSummary
 import com.example.top.ui.components.DarkGradientBackground
 import com.example.top.ui.components.InternetBanner
@@ -49,7 +50,7 @@ import com.example.top.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.viewmodel.AuthViewModel, viewModel: HomeViewModel = HomeViewModel()) {
+fun HomeScreen(onCreateGroup: () -> Unit, viewModel: HomeViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -63,7 +64,6 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
                 NavigationDrawerItem(label = { Text("Change language") }, selected = false, onClick = {})
                 NavigationDrawerItem(label = { Text("Create group") }, selected = false, onClick = onCreateGroup)
                 NavigationDrawerItem(label = { Text("Give feedback") }, selected = false, onClick = {})
-                NavigationDrawerItem(label = { Text("Logout") }, selected = false, onClick = { authViewModel.logout() })
             }
         }
     ) {
