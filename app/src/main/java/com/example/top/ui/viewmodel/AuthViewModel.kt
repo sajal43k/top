@@ -1,11 +1,10 @@
 package com.example.top.ui.viewmodel
 
-import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.top.TopApplication
 import com.example.top.data.model.UserProfile
-import com.example.top.data.repository.AuthRepository
 import com.example.top.data.repository.FirebaseAuthRepository
 import com.example.top.ui.state.AuthState
 import com.example.top.util.ConnectivityObserver
@@ -24,11 +23,11 @@ data class AuthUiState(
 )
 
 class AuthViewModel(
-    application: Application,
-    private val repository: AuthRepository = FirebaseAuthRepository()
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
-    private val connectivityObserver = ConnectivityObserver(application)
+    private val repository by lazy { FirebaseAuthRepository() }
+
+    private val connectivityObserver = ConnectivityObserver(TopApplication.instance)
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -47,10 +46,12 @@ class AuthViewModel(
     }
 
     fun checkSession() {
-        if (!repository.hasSession()) {
-            _uiState.update { it.copy(authState = AuthState.Unauthenticated, isLoading = false) }
-            return
+        val hasSession = runCatching { repository.hasSession() }.getOrElse {
+            _uiState.update { state -> state.copy(authState = AuthState.Unauthenticated, isLoading = false, message = "Firebase is not initialized. Check google-services.json setup.") }
+            false
         }
+        if (!hasSession) return
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, authState = AuthState.Loading) }
             repository.getLoggedInUser()
