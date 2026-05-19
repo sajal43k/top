@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.top.data.model.UserProfile
+import com.example.top.data.repository.AuthRepository
 import com.example.top.data.repository.FirebaseAuthRepository
 import com.example.top.ui.state.AuthState
 import com.example.top.util.ConnectivityObserver
@@ -23,10 +24,9 @@ data class AuthUiState(
 )
 
 class AuthViewModel(
-    application: Application
+    application: Application,
+    private val repository: AuthRepository = FirebaseAuthRepository()
 ) : AndroidViewModel(application) {
-
-    private val repository = FirebaseAuthRepository()
 
     private val connectivityObserver = ConnectivityObserver(application)
 
