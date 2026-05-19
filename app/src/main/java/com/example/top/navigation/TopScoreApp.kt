@@ -1,11 +1,8 @@
 package com.example.top.navigation
 
-import android.app.Application
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,23 +14,12 @@ import com.example.top.ui.screens.home.HomeScreen
 import com.example.top.ui.screens.splash.SplashScreen
 import com.example.top.ui.state.AuthState
 import com.example.top.ui.viewmodel.AuthViewModel
-import com.example.top.ui.viewmodel.AuthViewModelFactory
 
 @Composable
 fun TopScoreApp() {
     val navController = rememberNavController()
-    val application = LocalContext.current.applicationContext as Application
-    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(application))
+    val authViewModel: AuthViewModel = viewModel()
     val authState by authViewModel.uiState.collectAsState()
-
-    LaunchedEffect(authState.authState) {
-        val route = navController.currentBackStackEntry?.destination?.route
-        if (authState.authState == AuthState.Unauthenticated && route == AppRoute.Home.route) {
-            navController.navigate(AppRoute.Login.route) {
-                popUpTo(AppRoute.Home.route) { inclusive = true }
-            }
-        }
-    }
 
     NavHost(navController = navController, startDestination = AppRoute.Splash.route) {
         composable(AppRoute.Splash.route) {
