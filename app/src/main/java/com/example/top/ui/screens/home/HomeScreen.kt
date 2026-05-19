@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
@@ -42,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.top.data.model.GroupSummary
 import com.example.top.ui.components.DarkGradientBackground
 import com.example.top.ui.components.InternetBanner
@@ -50,7 +50,7 @@ import com.example.top.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(onCreateGroup: () -> Unit, viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.viewmodel.AuthViewModel, viewModel: HomeViewModel = HomeViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -64,6 +64,7 @@ fun HomeScreen(onCreateGroup: () -> Unit, viewModel: HomeViewModel = viewModel()
                 NavigationDrawerItem(label = { Text("Change language") }, selected = false, onClick = {})
                 NavigationDrawerItem(label = { Text("Create group") }, selected = false, onClick = onCreateGroup)
                 NavigationDrawerItem(label = { Text("Give feedback") }, selected = false, onClick = {})
+                NavigationDrawerItem(label = { Text("Logout") }, selected = false, onClick = { authViewModel.logout() })
             }
         }
     ) {
@@ -86,7 +87,10 @@ fun HomeScreen(onCreateGroup: () -> Unit, viewModel: HomeViewModel = viewModel()
                                 Text("Home", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                                 Text("Hello, ${uiState.userName}", color = Color(0xFFB6C2D4))
                             }
-                            IconButton(onClick = {}) { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White) }
+                            Row {
+                                IconButton(onClick = {}) { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White) }
+                                IconButton(onClick = { authViewModel.logout() }) { Icon(Icons.Default.Logout, contentDescription = "Logout", tint = Color.White) }
+                            }
                         }
                         Spacer(Modifier.height(16.dp))
                         OutlinedTextField(

@@ -1,14 +1,17 @@
 # Firebase setup steps
 
-1. Open <https://console.firebase.google.com/> and create a Firebase project.
-2. Add an Android app to the Firebase project.
-3. Use this package name: `com.example.top`.
-4. Download `google-services.json` from Firebase.
-5. Put `google-services.json` inside the `app/` folder.
-6. Enable Authentication in Firebase Console. Start with Email/Password or Phone Auth.
-7. Create a Firestore database in production or test mode while learning.
-8. Enable Firebase Storage if profile pictures and prize photos will be uploaded.
-9. Add Firebase Gradle dependencies in the next milestone.
-10. Replace `InMemoryAuthRepository` with a Firebase-backed repository.
+1. Create a Firebase project at https://console.firebase.google.com/.
+2. Add Android app package `com.example.top`.
+3. Download `google-services.json` and place it in `app/google-services.json`.
+4. In Firebase Console, enable **Authentication** with Email/Password sign-in.
+5. Create **Cloud Firestore** database and allow authenticated users to read/write their own user doc.
+6. Enable **Cloud Storage** for profile images.
+7. Sync Android Studio so Google Services + Firebase BOM dependencies are installed.
+8. Run app and create a real account from Create Account screen.
 
-Suggested Firestore collections are already listed in `FirebaseConfig`: users, groups, scores, and attendance.
+## Current architecture
+- `FirebaseAuthService` handles login/create-account/password reset and session.
+- `FirestoreService` stores and loads user profile data.
+- `FirebaseStorageService` provides profile image upload structure.
+- `FirebaseAuthRepository` is the repository layer used by `AuthViewModel`.
+- `AuthViewModel` manages auth state (`Loading`, `Authenticated`, `Unauthenticated`) and connectivity state.

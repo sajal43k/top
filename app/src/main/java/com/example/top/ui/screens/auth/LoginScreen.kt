@@ -16,14 +16,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.top.ui.components.AuthCard
 import com.example.top.ui.components.DarkGradientBackground
 import com.example.top.ui.components.InlineLink
+import com.example.top.ui.components.PasswordTextField
 import com.example.top.ui.components.PrimaryActionButton
 import com.example.top.ui.components.ScreenTitle
-import com.example.top.ui.components.SecondaryActionButton
 import com.example.top.ui.components.TopScoreTextField
 import com.example.top.ui.viewmodel.AuthViewModel
 
@@ -36,8 +35,9 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var identifier by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -51,15 +51,19 @@ fun LoginScreen(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            ScreenTitle("Login", "Use your name or phone number and password to open your score groups.")
+            ScreenTitle("Login", "Login to continue to your groups and scores.")
             AuthCard {
-                TopScoreTextField(identifier, { identifier = it }, "Name or phone number")
-                TopScoreTextField(password, { password = it }, "Password", visualTransformation = PasswordVisualTransformation())
+                TopScoreTextField(email, { email = it }, "Email")
+                PasswordTextField(password, { password = it }, "Password", showPassword, { showPassword = !showPassword })
                 PrimaryActionButton("Login", uiState.isLoading) {
-                    viewModel.login(identifier, password, onLoginSuccess)
+                    viewModel.login(email, password, onLoginSuccess)
                 }
-                SecondaryActionButton("Create account", onCreateAccount)
                 InlineLink("Forgot password?", onForgotPassword)
+            }
+
+            AuthCard {
+                ScreenTitle("New here?", "Create a separate account to start fresh.")
+                PrimaryActionButton("Create account", false, onCreateAccount)
             }
         }
         SnackbarHost(hostState = snackbarHostState)
