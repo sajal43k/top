@@ -74,6 +74,13 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
         } else {
             viewModel.startForCurrentUser()
         }
+    LaunchedEffect(authUiState.currentUser?.name) {
+        viewModel.setUserName(authUiState.currentUser?.name.orEmpty())
+        authUiState.currentUser?.uid?.takeIf { it.isNotBlank() }?.let { viewModel.start(it) }
+    }
+
+    LaunchedEffect(authUiState.currentUser?.name) {
+        viewModel.setUserName(authUiState.currentUser?.name.orEmpty())
     }
 
     ModalNavigationDrawer(

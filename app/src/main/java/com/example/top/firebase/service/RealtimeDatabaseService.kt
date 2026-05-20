@@ -83,6 +83,7 @@ class RealtimeDatabaseService(
             joinRef.setValue(true).await()
             val memberCountRef = groupsRef.child(groupId).child("memberCount")
             val current = memberCountRef.get().await().getMemberCount()
+            val current = memberCountRef.get().await().getValue(Int::class.java) ?: 0
             memberCountRef.setValue(current + 1).await()
         }
     }
@@ -100,6 +101,7 @@ class RealtimeDatabaseService(
     }
 
     private fun DatabaseReference.listenGroupList(
+    private fun com.google.firebase.database.DatabaseReference.listenGroupList(
         role: GroupRole,
         onUpdate: (List<GroupSummary>) -> Unit
     ): ValueEventListener {
@@ -119,6 +121,7 @@ class RealtimeDatabaseService(
                             description = node.child("description").getValue(String::class.java).orEmpty(),
                             ownerName = node.child("ownerName").getValue(String::class.java).orEmpty(),
                             memberCount = node.child("memberCount").getMemberCount(),
+                            memberCount = node.child("memberCount").getValue(Int::class.java) ?: 0,
                             role = role
                         )
                     }
@@ -129,6 +132,7 @@ class RealtimeDatabaseService(
             override fun onCancelled(error: DatabaseError) {
                 onUpdate(emptyList())
             }
+            override fun onCancelled(error: com.google.firebase.database.DatabaseError) = Unit
         }
         addValueEventListener(listener)
         return listener
@@ -143,6 +147,7 @@ class RealtimeDatabaseService(
         profession = child("profession").getValue(String::class.java).orEmpty(),
         age = child("age").getValue(String::class.java).orEmpty(),
         profileImageUri = child("profileImageUri").getValue(String::class.java).orEmpty(),
+        profileImageUri = child("profileImageUri").getValue(String::class.java),
         firstPetName = child("firstPetName").getValue(String::class.java).orEmpty(),
         hasNoPet = child("hasNoPet").getValue(Boolean::class.java) ?: false,
         firstSchoolName = child("firstSchoolName").getValue(String::class.java).orEmpty(),
