@@ -71,6 +71,7 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
         val uid = authUiState.currentUser?.uid.orEmpty()
         if (uid.isNotBlank()) {
             viewModel.start(uid)
+        }
         } else {
             viewModel.startForCurrentUser()
         }
