@@ -4,6 +4,8 @@ import com.example.top.data.model.GroupRole
 import com.example.top.data.model.GroupSummary
 import com.example.top.data.model.UserProfile
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
@@ -80,6 +82,7 @@ class RealtimeDatabaseService(
         if (!ownerMap) {
             joinRef.setValue(true).await()
             val memberCountRef = groupsRef.child(groupId).child("memberCount")
+            val current = memberCountRef.get().await().getMemberCount()
             val current = memberCountRef.get().await().getValue(Int::class.java) ?: 0
             memberCountRef.setValue(current + 1).await()
         }
@@ -97,6 +100,7 @@ class RealtimeDatabaseService(
         awaitClose { ref.removeEventListener(listener) }
     }
 
+    private fun DatabaseReference.listenGroupList(
     private fun com.google.firebase.database.DatabaseReference.listenGroupList(
         role: GroupRole,
         onUpdate: (List<GroupSummary>) -> Unit
@@ -116,6 +120,7 @@ class RealtimeDatabaseService(
                             name = node.child("name").getValue(String::class.java).orEmpty(),
                             description = node.child("description").getValue(String::class.java).orEmpty(),
                             ownerName = node.child("ownerName").getValue(String::class.java).orEmpty(),
+                            memberCount = node.child("memberCount").getMemberCount(),
                             memberCount = node.child("memberCount").getValue(Int::class.java) ?: 0,
                             role = role
                         )
@@ -124,6 +129,9 @@ class RealtimeDatabaseService(
                 }.addOnFailureListener { onUpdate(emptyList()) }
             }
 
+            override fun onCancelled(error: DatabaseError) {
+                onUpdate(emptyList())
+            }
             override fun onCancelled(error: com.google.firebase.database.DatabaseError) = Unit
         }
         addValueEventListener(listener)
@@ -138,10 +146,17 @@ class RealtimeDatabaseService(
         phoneNumber = child("phoneNumber").getValue(String::class.java).orEmpty(),
         profession = child("profession").getValue(String::class.java).orEmpty(),
         age = child("age").getValue(String::class.java).orEmpty(),
+        profileImageUri = child("profileImageUri").getValue(String::class.java).orEmpty(),
         profileImageUri = child("profileImageUri").getValue(String::class.java),
         firstPetName = child("firstPetName").getValue(String::class.java).orEmpty(),
         hasNoPet = child("hasNoPet").getValue(Boolean::class.java) ?: false,
         firstSchoolName = child("firstSchoolName").getValue(String::class.java).orEmpty(),
         firstFriendName = child("firstFriendName").getValue(String::class.java).orEmpty()
     )
+
+    private fun DataSnapshot.getMemberCount(): Int {
+        val asLong = getValue(Long::class.java)
+        val asInt = getValue(Int::class.java)
+        return (asLong ?: asInt?.toLong() ?: 0L).toInt()
+    }
 }
