@@ -140,5 +140,14 @@ class AuthViewModel(
         _uiState.update { it.copy(currentUser = null, authState = AuthState.Unauthenticated) }
     }
 
+    fun updateProfile(profile: UserProfile) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, message = null) }
+            repository.updateProfile(profile)
+                .onSuccess { user -> _uiState.update { it.copy(isLoading = false, currentUser = user, message = "Profile updated") } }
+                .onFailure { error -> _uiState.update { it.copy(isLoading = false, message = error.message ?: "Unable to update profile") } }
+        }
+    }
+
     fun clearMessage() = _uiState.update { it.copy(message = null) }
 }
