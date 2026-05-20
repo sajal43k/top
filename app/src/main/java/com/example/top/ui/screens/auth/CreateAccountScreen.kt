@@ -85,7 +85,17 @@ fun CreateAccountScreen(
                 TopScoreTextField(firstFriend, { firstFriend = it }, "First friend name")
                 PrimaryActionButton("Create account", uiState.isLoading) {
                     viewModel.createAccount(
-                        profile = UserProfile(name, phone, profession, age, firstPetName = firstPet, hasNoPet = hasNoPet, firstSchoolName = firstSchool, firstFriendName = firstFriend),
+                        profile = UserProfile(
+                            name = name,
+                            phoneNumber = phone,
+                            profession = profession,
+                            age = age,
+                            firstPetName = firstPet,
+                            hasNoPet = hasNoPet,
+                            firstSchoolName = firstSchool,
+                            firstFriendName = firstFriend
+                        ),
+                        
                         email = email,
                         password = password,
                         confirmPassword = confirmPassword,

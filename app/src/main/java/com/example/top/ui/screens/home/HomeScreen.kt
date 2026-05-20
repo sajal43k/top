@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Logout
@@ -31,12 +32,18 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,17 +59,37 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.viewmodel.AuthViewModel, viewModel: HomeViewModel = HomeViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val authUiState by authViewModel.uiState.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var showCreateGroup by remember { mutableStateOf(false) }
+    var groupName by remember { mutableStateOf("") }
+    var groupDescription by remember { mutableStateOf("") }
+
+    LaunchedEffect(authUiState.currentUser?.uid, authUiState.currentUser?.name) {
+        viewModel.setUserName(authUiState.currentUser?.name.orEmpty())
+        val uid = authUiState.currentUser?.uid.orEmpty()
+        if (uid.isNotBlank()) {
+            viewModel.start(uid)
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(drawerContainerColor = Color(0xFF111827)) {
-                Text("Top Score", modifier = Modifier.padding(24.dp), color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { scope.launch { drawerState.close() } }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back to home", tint = Color.White)
+                    }
+                    Text("Top Score", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                }
                 NavigationDrawerItem(label = { Text("Edit profile") }, selected = false, onClick = {})
                 NavigationDrawerItem(label = { Text("Change language") }, selected = false, onClick = {})
-                NavigationDrawerItem(label = { Text("Create group") }, selected = false, onClick = onCreateGroup)
+                NavigationDrawerItem(label = { Text("Create group") }, selected = false, onClick = { showCreateGroup = true })
                 NavigationDrawerItem(label = { Text("Give feedback") }, selected = false, onClick = {})
                 NavigationDrawerItem(label = { Text("Logout") }, selected = false, onClick = { authViewModel.logout() })
             }
@@ -72,7 +99,7 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
             Scaffold(
                 containerColor = Color.Transparent,
                 floatingActionButton = {
-                    ExtendedFloatingActionButton(onClick = onCreateGroup, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Create group") })
+                    ExtendedFloatingActionButton(onClick = { showCreateGroup = true }, icon = { Icon(Icons.Default.Add, null) }, text = { Text("Create group") })
                 }
             ) { paddingValues ->
                 LazyColumn(
@@ -102,6 +129,7 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
                             singleLine = true
                         )
                     }
+                    if (uiState.isLoading) item { EmptyGroupMessage("Loading groups...") }
                     item { SectionTitle("Groups created by you") }
                     if (uiState.createdGroups.isEmpty()) {
                         item { EmptyGroupMessage("No group created yet.") }
@@ -117,6 +145,27 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
                 }
             }
         }
+    }
+    if (showCreateGroup) {
+        AlertDialog(
+            onDismissRequest = { showCreateGroup = false },
+            title = { Text("Create Group") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(value = groupName, onValueChange = { groupName = it }, label = { Text("Group name") })
+                    OutlinedTextField(value = groupDescription, onValueChange = { groupDescription = it }, label = { Text("Description") })
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.createGroup(groupName, groupDescription)
+                    showCreateGroup = false
+                    groupName = ""
+                    groupDescription = ""
+                }) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { showCreateGroup = false }) { Text("Cancel") } }
+        )
     }
 }
 

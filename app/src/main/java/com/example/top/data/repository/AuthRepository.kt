@@ -3,8 +3,7 @@ package com.example.top.data.repository
 import android.net.Uri
 import com.example.top.data.model.UserProfile
 import com.example.top.firebase.service.FirebaseAuthService
-import com.example.top.firebase.service.FirebaseStorageService
-import com.example.top.firebase.service.FirestoreService
+import com.example.top.firebase.service.RealtimeDatabaseService
 
 interface AuthRepository {
     suspend fun login(identifier: String, password: String): Result<UserProfile>
@@ -16,19 +15,19 @@ interface AuthRepository {
     ): Result<UserProfile>
     suspend fun getLoggedInUser(): Result<UserProfile>
     suspend fun sendPasswordReset(email: String): Result<Unit>
+    suspend fun updateProfile(profile: UserProfile): Result<UserProfile>
     fun hasSession(): Boolean
     fun logout()
 }
 
 class FirebaseAuthRepository(
     private val authService: FirebaseAuthService = FirebaseAuthService(),
-    private val firestoreService: FirestoreService = FirestoreService(),
-    private val storageService: FirebaseStorageService = FirebaseStorageService()
+    private val dbService: RealtimeDatabaseService = RealtimeDatabaseService()
 ) : AuthRepository {
 
     override suspend fun login(identifier: String, password: String): Result<UserProfile> = runCatching {
         val firebaseUser = authService.login(identifier.trim(), password)
-        firestoreService.getUser(firebaseUser.uid)
+        dbService.getUser(firebaseUser.uid)
     }
 
     override suspend fun createAccount(
@@ -38,19 +37,24 @@ class FirebaseAuthRepository(
         profileImageUri: Uri?
     ): Result<UserProfile> = runCatching {
         val firebaseUser = authService.createUser(email.trim(), password)
-        val imageUrl = profileImageUri?.let { storageService.uploadProfileImage(firebaseUser.uid, it) }
-        val updatedProfile = profile.copy(profileImageUri = imageUrl)
-        firestoreService.saveUser(firebaseUser.uid, updatedProfile, email)
+        val updatedProfile = profile.copy(uid = firebaseUser.uid, profileImageUri = "")
+        dbService.saveUser(firebaseUser.uid, updatedProfile, email)
         updatedProfile
     }
 
     override suspend fun getLoggedInUser(): Result<UserProfile> = runCatching {
         val user = authService.currentUser() ?: error("No active session")
-        firestoreService.getUser(user.uid)
+        dbService.getUser(user.uid)
     }
 
     override suspend fun sendPasswordReset(email: String): Result<Unit> = runCatching {
         authService.sendPasswordReset(email)
+    }
+
+    override suspend fun updateProfile(profile: UserProfile): Result<UserProfile> = runCatching {
+        val uid = authService.currentUser()?.uid ?: error("No active session")
+        dbService.updateUser(uid, profile)
+        profile.copy(uid = uid)
     }
 
     override fun hasSession(): Boolean = authService.currentUser() != null
