@@ -71,6 +71,10 @@ fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.view
         authUiState.currentUser?.uid?.takeIf { it.isNotBlank() }?.let { viewModel.start(it) }
     }
 
+    LaunchedEffect(authUiState.currentUser?.name) {
+        viewModel.setUserName(authUiState.currentUser?.name.orEmpty())
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
