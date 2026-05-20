@@ -1,24 +1,28 @@
 package com.example.top.data.repository
 
-import com.example.top.data.model.GroupRole
 import com.example.top.data.model.GroupSummary
+import com.example.top.firebase.service.RealtimeDatabaseService
+import kotlinx.coroutines.flow.Flow
 
 interface GroupRepository {
-    suspend fun getCreatedGroups(userId: String): Result<List<GroupSummary>>
-    suspend fun getJoinedGroups(userId: String): Result<List<GroupSummary>>
+    fun observeCreatedGroups(userId: String): Flow<List<GroupSummary>>
+    fun observeJoinedGroups(userId: String): Flow<List<GroupSummary>>
+    suspend fun createGroup(userId: String, ownerName: String, groupName: String, description: String): Result<Unit>
+    suspend fun joinGroup(userId: String, groupId: String): Result<Unit>
 }
 
-class DemoGroupRepository : GroupRepository {
-    override suspend fun getCreatedGroups(userId: String): Result<List<GroupSummary>> = Result.success(
-        listOf(
-            GroupSummary("1", "Class 8 Scoreboard", "Demo Admin", 32, GroupRole.ADMIN),
-            GroupSummary("2", "Sunday Cricket Team", "Demo Admin", 18, GroupRole.ADMIN)
-        )
-    )
+class FirebaseGroupRepository(
+    private val dbService: RealtimeDatabaseService = RealtimeDatabaseService()
+) : GroupRepository {
+    override fun observeCreatedGroups(userId: String): Flow<List<GroupSummary>> = dbService.observeCreatedGroups(userId)
 
-    override suspend fun getJoinedGroups(userId: String): Result<List<GroupSummary>> = Result.success(
-        listOf(
-            GroupSummary("3", "Math Champions", "Neha Teacher", 28, GroupRole.STUDENT)
-        )
-    )
+    override fun observeJoinedGroups(userId: String): Flow<List<GroupSummary>> = dbService.observeJoinedGroups(userId)
+
+    override suspend fun createGroup(userId: String, ownerName: String, groupName: String, description: String): Result<Unit> = runCatching {
+        dbService.createGroup(userId, ownerName, groupName, description)
+    }
+
+    override suspend fun joinGroup(userId: String, groupId: String): Result<Unit> = runCatching {
+        dbService.joinGroup(userId, groupId)
+    }
 }
