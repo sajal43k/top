@@ -1,6 +1,7 @@
 package com.example.top.data.model
 
 data class UserProfile(
+    val uid: String = "",
     val name: String = "",
     val phoneNumber: String = "",
     val profession: String = "",
