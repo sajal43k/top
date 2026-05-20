@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Logout
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,14 +54,27 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(onCreateGroup: () -> Unit, authViewModel: com.example.top.ui.viewmodel.AuthViewModel, viewModel: HomeViewModel = HomeViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val authUiState by authViewModel.uiState.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(authUiState.currentUser?.name) {
+        viewModel.setUserName(authUiState.currentUser?.name.orEmpty())
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(drawerContainerColor = Color(0xFF111827)) {
-                Text("Top Score", modifier = Modifier.padding(24.dp), color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { scope.launch { drawerState.close() } }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back to home", tint = Color.White)
+                    }
+                    Text("Top Score", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                }
                 NavigationDrawerItem(label = { Text("Edit profile") }, selected = false, onClick = {})
                 NavigationDrawerItem(label = { Text("Change language") }, selected = false, onClick = {})
                 NavigationDrawerItem(label = { Text("Create group") }, selected = false, onClick = onCreateGroup)
