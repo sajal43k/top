@@ -50,7 +50,15 @@ class AuthViewModel(
             _uiState.update { state -> state.copy(authState = AuthState.Unauthenticated, isLoading = false, message = "Firebase is not initialized. Check google-services.json setup.") }
             false
         }
-        if (!hasSession) return
+        if (!hasSession) {
+            _uiState.update { state ->
+                state.copy(
+                    authState = AuthState.Unauthenticated,
+                    isLoading = false
+                )
+            }
+            return
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, authState = AuthState.Loading) }

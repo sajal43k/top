@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
-    val userName: String = "Demo Admin",
+    val userName: String = "User",
     val searchQuery: String = "",
     val createdGroups: List<GroupSummary> = emptyList(),
     val joinedGroups: List<GroupSummary> = emptyList(),
@@ -35,5 +35,9 @@ class HomeViewModel(
             val joined = repository.getJoinedGroups("demo").getOrDefault(emptyList())
             _uiState.update { it.copy(createdGroups = created, joinedGroups = joined) }
         }
+    }
+
+    fun setUserName(name: String) {
+        _uiState.update { it.copy(userName = name.trim().ifBlank { "User" }) }
     }
 }
