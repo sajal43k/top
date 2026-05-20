@@ -35,28 +35,12 @@ class HomeViewModel(
     private var startedForUserId: String? = null
 
     fun start(userId: String) {
-        if (userId.isBlank()) {
-            _uiState.update { it.copy(isLoading = false, message = "Unable to load groups. Please login again.") }
-            return
-        }
-        if (startedForUserId == userId) return
-        startedForUserId = userId
-        createdGroupsJob?.cancel()
-        joinedGroupsJob?.cancel()
-        _uiState.update { it.copy(isLoading = true) }
         observeCreatedGroups(userId)
         observeJoinedGroups(userId)
     }
 
-    fun startForCurrentUser() {
-        val uid = dbService.currentUserId()
-        if (uid != null) start(uid) else _uiState.update {
-            it.copy(isLoading = false, message = "No active session. Please login again.")
-        }
-    }
-
     private fun observeCreatedGroups(userId: String) {
-        createdGroupsJob = viewModelScope.launch {
+        viewModelScope.launch {
             repository.observeCreatedGroups(userId)
                 .catch { _uiState.update { state -> state.copy(message = it.message ?: "Failed to load created groups", isLoading = false) } }
                 .collect { groups ->
@@ -66,7 +50,7 @@ class HomeViewModel(
     }
 
     private fun observeJoinedGroups(userId: String) {
-        joinedGroupsJob = viewModelScope.launch {
+        viewModelScope.launch {
             repository.observeJoinedGroups(userId)
                 .catch { _uiState.update { state -> state.copy(message = it.message ?: "Failed to load joined groups", isLoading = false) } }
                 .collect { groups ->
