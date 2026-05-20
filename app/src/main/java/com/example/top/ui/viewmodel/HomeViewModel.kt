@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
@@ -29,6 +30,9 @@ class HomeViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private var createdGroupsJob: Job? = null
+    private var joinedGroupsJob: Job? = null
+    private var startedForUserId: String? = null
 
     fun start(userId: String) {
         observeCreatedGroups(userId)
