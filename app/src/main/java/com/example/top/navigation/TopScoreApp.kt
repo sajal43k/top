@@ -12,15 +12,18 @@ import com.example.top.ui.screens.auth.CreateAccountScreen
 import com.example.top.ui.screens.auth.ForgotPasswordScreen
 import com.example.top.ui.screens.auth.LoginScreen
 import com.example.top.ui.screens.home.HomeScreen
+import com.example.top.ui.screens.home.CreateGroupScreen
 import com.example.top.ui.screens.splash.SplashScreen
 import com.example.top.ui.state.AuthState
 import com.example.top.ui.viewmodel.AuthViewModel
 import com.example.top.ui.viewmodel.AuthViewModelFactory
+import com.example.top.ui.viewmodel.HomeViewModel
 
 @Composable
 fun TopScoreApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory())
+    val homeViewModel: HomeViewModel = viewModel()
     val authState by authViewModel.uiState.collectAsState()
 
     LaunchedEffect(authState.authState) {
@@ -78,7 +81,10 @@ fun TopScoreApp() {
             )
         }
         composable(AppRoute.Home.route) {
-            HomeScreen(onCreateGroup = {}, authViewModel = authViewModel)
+            HomeScreen(onCreateGroup = { navController.navigate(AppRoute.CreateGroup.route) }, authViewModel = authViewModel, viewModel = homeViewModel)
+        }
+        composable(AppRoute.CreateGroup.route) {
+            CreateGroupScreen(viewModel = homeViewModel, onBack = { navController.popBackStack() })
         }
     }
 }
